@@ -1,0 +1,55 @@
+ALTER FUNCTION [dbo].[***]
+	(
+		@pp int
+	)
+-- Multi-Statement Table-Valued Function
+returns @tmp_tbl TABLE (
+  [Оцениваемый блок] nvarchar(1024),
+  [Оцениваемое управление] nvarchar(1024),
+  [Оцениваемый отдел] nvarchar(1024),
+  M1 int,
+  P1 int,
+  M2 int,
+  P2 int,
+  M3 int,
+  P3 int,
+  M4 int,
+  P4 int,
+  M5 int,
+  P5 int,
+  M6 int,
+  P6 int,
+  [Отдел пользователя] nvarchar(1024),
+  [Управление пользователя] nvarchar(1024),
+  [Блок пользователя] nvarchar(1024),
+  [Тип пользователя] nvarchar(1024),
+  [Взаимодействие] nvarchar(1024),
+  C1 nvarchar(300),
+  C2 nvarchar(300),
+  C3 nvarchar(300),
+  C4 nvarchar(300),
+  C5 nvarchar(300),
+  C6 nvarchar(300)
+)
+as
+begin
+  declare @p int
+  set @p = @pp
+insert into @tmp_tbl
+    SELECT One.Name [Оцениваемый блок], Two.Name [Оцениваемое управление], Three.Name [Оцениваемый отдел], 
+		ISNULL(M1, 0) M1, ISNULL(P1, 0) P1, ISNULL(M2, 0) M2, ISNULL(P2, 0) P2, ISNULL(M3, 0) M3, ISNULL(P3, 0) P3,
+		ISNULL(M4, 0) M4, ISNULL(P4, 0) P4, ISNULL(M5, 0) M5, ISNULL(P5, 0) P5,ISNULL(M6, 0) M6, ISNULL(P6, 0) P6,
+		Four.Name [Отдел пользователя], Five.Name [Управление пользователя], Six.Name [Блок пользователя], 
+		Type.Name [Тип пользователя], Product.Name [Взаимодействие],  C1,  C2, C3, C4, C5, C6
+FROM GetMarksToExcelMonths_MSTV11(@p) gm  INNER JOIN
+                      Structure AS One ON gm.BlockM_ID = One.ID INNER JOIN
+                      Structure AS Two ON gm.DepartmentM_ID = Two.ID INNER JOIN
+                      Structure AS Three ON gm.DivisionM_ID = Three.ID INNER JOIN
+                      Structure AS Four ON gm.DivisionU_ID = Four.ID INNER JOIN
+                      Structure AS Five ON gm.DepartmentU_ID = Five.ID INNER JOIN
+                      Structure AS Six ON gm.BlockU_ID = Six.ID INNER JOIN
+					  Type ON gm.Type = Type.ID INNER JOIN
+                      Product ON gm.Product_ID = Product.ID
+					  where Product.Active=1
+ return
+end

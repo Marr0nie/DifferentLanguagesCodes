@@ -1,0 +1,70 @@
+
+//объявление в xaml
+<myres:MultiForegroundConverter x:Key="multiConverter"/>
+
+<Style x:Key="custom1" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource ResourceKey=multiConverter}">
+                        <Binding Path="Period"/>
+                        <Binding Path="IsBLMarked"/>
+                        <Binding Path="IsAccessed"/>
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+</Style>
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows.Data;
+using System.Windows.Media;
+
+namespace _Client
+{
+    class MultiForegroundConverter : IMultiValueConverter
+    {
+
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            string dateend;
+            string[] d;
+            DateTime d_end, d_s;
+            bool isbl, isac;
+            if (values[0] != null)
+            {
+                try
+                {
+                    dateend = values[0].ToString();//передается строка дат (дата начала-дата окончания)
+                    d = dateend.Split('-');//выделяются обе даты в массив
+                    d_s = DateTime.Parse(d[0]);
+                    d_end = DateTime.Parse(d[1]);//приводятся в типу DateTime
+                    isbl = (bool)values[1];
+                    isac = (bool)values[2];//приводятся к типу bool (эти переменные хранят информацию о том есть ли допуски разных категорий или нет)
+                    if ((d_end < DateTime.Now.Date) || (d_s > DateTime.Now.Date) || (isbl == true))
+                        return Brushes.Red;
+                    else
+                    {
+                        if (isac == false)
+                            return Brushes.DarkOrange;
+                        else
+                        {
+                            return Brushes.Green;
+                        }//в зависимости от передаваемых значений поля в таблице окрашиваются в разные цвета, чтобы охранники наглядно могли увидеть есть ли доступ или нет
+                    }
+                }
+                catch { return Brushes.WhiteSmoke;}
+            }
+            return Brushes.WhiteSmoke;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+

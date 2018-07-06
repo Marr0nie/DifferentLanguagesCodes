@@ -1,0 +1,55 @@
+ 
+//проверка на отметку
+function checkBox1OnClick(elementRef) {
+        if (elementRef.checked) {
+            if (window.confirm('Отметить проблему решенной?') == false)
+                elementRef.checked = false;
+        }
+    }
+
+
+//запоминает положение скролл баров в таблице, чтобы при обновлении страницы прокрутка не сбрасывалась
+ window.onload = function () {
+        var strCook = document.cookie;
+        if (strCook.indexOf("!~") >0) {
+            var intS = strCook.indexOf("!~");
+            var intE = strCook.indexOf("~!");
+            var strPos = strCook.substring(intS + 2, intE);
+            document.getElementById("DivProviderGrid").scrollTop = strPos;
+        }
+
+        var strCook1 = document.cookie;
+          if (strCook1.indexOf("!*") >0) {
+               var intS1 = strCook1.indexOf("!*");
+               var intE1 = strCook1.indexOf("*!");
+               var strPos1 = strCook1.substring(intS1 + 2, intE1);
+               document.getElementById("DivClientGrid").scrollTop = strPos1;
+           }
+        }
+
+
+function SetDivPosition() {
+    var intY = document.getElementById("DivProviderGrid").scrollTop;
+    var intY1 = document.getElementById("DivClientGrid").scrollTop;
+    document.cookie = "yPos=!~" + intY + "~!+!*" + intY1+"*!";
+}
+
+
+
+function SetDivPosition1() {
+    var intY1 = document.getElementById("DivClientGrid").scrollTop;
+    document.cookie = "yPos=!*" + intY1 + "*!";
+}
+
+
+//проверяет значение dropdownlist'ов
+function MarkChange(ddl) {
+    var selectedValue = ddl.value;
+    var v = document.getElementById("PanelComment");
+    if (ddl.value > 0 && ddl.value < 6) {
+        if (v.style.display = "block")
+            v.style.display = "none";
+        else
+            v.style.display = "block";
+    }
+}

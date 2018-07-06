@@ -1,0 +1,57 @@
+ALTER FUNCTION [dbo].[GetProblemsAsExecutorPeriods_2]
+	(
+		@p int
+	)
+RETURNS TABLE
+AS
+
+RETURN 
+
+with r_r as
+(
+  select s.* from Structure s
+  where s.ID = @p
+  union all
+  select s2.* from Structure s2
+  join r_r r on r.ID_P = s2.ID and s2.Name = (select s3.Name from Structure s3 where s3.ID = @p)
+)
+
+SELECT  
+ p.Init_ID as Initiator_ID
+ , (select ss.Name from Structure ss where ss.id = p.Exec_ID) Name_Exec
+ , p.Name as Name
+ , s.Name as [Initiator]
+ , p.ID as Problem_ID
+ , Convert(date,p.Plan_date) as PlannedDate
+ ,Convert(date,p.Create_date) as CreateDate
+ , IsNull(m.Mark,null) as Mark1
+ , Isnull(mp2.Mark,null) as Mark2
+ , m.Comment as Comment
+ , (select top 1 id from Periods_problems p where p.Date1 <= getdate() order by p.Date1 desc) as Period_ID
+ , (SELECT DATEDIFF(DAY,p.Create_date,getdate())) as DaysInWork
+
+FROM Marks_problems m
+right join problems p
+ on m.Problem_ID=p.ID and m.Period_ID = (select top 1 id from Periods_problems p where p.Date1 <= getdate() order by p.Date1 desc)
+ left join Marks_problems mp2
+ on mp2.Problem_ID=p.ID and mp2.Period_ID = (select top 1 pr.ID from Periods_problems pr where pr.ID < (select top 1 id from Periods_problems p where p.Date1 <= getdate() order by p.Date1 desc) order by pr.ID desc)
+
+inner JOIN Structure s
+	ON p.Init_ID = s.ID
+where p.Exec_ID in (
+
+	select qq.ID from (
+	select s_.* from Structure s_
+	where s_.ID_P in (
+	select S.ID from Structure s
+	where s.ID_P in (select r_r.ID from r_r))
+	union
+	select S.* from Structure s
+	where s.ID_P in (select r_r.ID from r_r)
+	union
+	select r_r.* from r_r
+	) qq
+	where qq.active = 1
+
+)
+AND p.Status = 1

@@ -1,0 +1,142 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows.Controls;
+using System.Windows;
+
+namespace zarplata1
+{
+    public class TextBoxMoney: TextBox
+    {
+        public TextBoxMoney()
+        {
+            oldText = "";
+        }
+
+        private string oldText; // текст до ввода нового символа
+        protected override void OnTextChanged(TextChangedEventArgs e)
+        {
+            base.OnTextChanged(e);
+            string text = this.Text; // текст из “екстбокса записываетс€ в переменную, котора€ будет провер€тьс€ на корректность символов
+
+            // если в строке нашли зап€тую, то замен€ем ее на точку
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == ',')
+                {
+                    text = text.Substring(0, i) + '.' + text.Substring(i + 1, text.Length - i - 1);
+                    this.Text = text;
+                }
+            }
+
+            int dotCount = 0; // количество точек в строке
+            int dotPosition = -1; // пор€дковый номер точки в тексте
+
+            bool errorNotDigitOrDot = false; // имеетс€ ли недопустимый символ в строке
+            for (int i = 0; i < text.Length; i++)
+            {
+                if ((!Char.IsDigit(text[i])) && (text[i] != '.')) // если ввели недопустимый символ
+                {
+                    text = oldText; // оставл€ем предыдущий текст
+                    this.Text = oldText;
+                    errorNotDigitOrDot = true; // ошибка
+                    break;
+                }
+
+                // подсчет количества точек в строке
+                if (text[i] == '.')
+                {
+                    dotCount++; 
+                    dotPosition = i; // позици€ точки
+                }
+            }
+           
+            if (errorNotDigitOrDot == false) // если все введенные символы €вл€ютс€ допустимыми
+            {
+                
+                // если число без точки
+                if (dotCount == 0)
+                {
+                    if (text == "") // если строка пуста€
+                    {
+                      this.Text = null;
+                    }
+                    else if (text.Length == 1) // если введен первый символ
+                    {
+                       text += ".00"; // добавл€етс€ точка с нул€ми в конце
+                       this.Text = text;
+                       this.SelectionStart = text.Length - 3; // курсор встает перед точкой
+                    }
+                    else // если строка с точкой уже существовала
+                    {
+                       text = oldText;
+                       this.Text = text;
+                       this.SelectionStart = oldText.Length - 3; // курсор перед точкой
+                    }
+                }
+            
+                if (dotCount > 1) // если в строке больше одной точки
+                {
+                    text = oldText;
+                    this.Text = text;
+                    this.SelectionStart = dotPosition;
+                }
+
+                // если строка начинаетс€ с точки
+                if (dotPosition == 0)
+                {
+                    text = "0" + text; // перед точкой добавл€етс€ "0"
+                    this.Text = text;
+                }
+
+                // если после точки стоит один символ
+                if (dotPosition == text.Length - 2)
+                {
+                    text += "0";
+                    this.Text = text;
+                    this.SelectionStart = text.Length - 1;
+                }
+
+                // если после точки ни одного символа
+                if ((dotPosition == text.Length - 1) && (dotCount == 1))
+                {
+                    text += "00";
+                    this.Text = text;
+                    this.SelectionStart = text.Length - 1;
+                }
+
+                // если после точки больше двух символов
+                if (dotPosition == text.Length - 4)
+                {
+                    text = text.Substring(0, text.Length - 1);
+                    this.Text = text;
+                    this.SelectionStart = text.Length - 1;
+                }
+
+                // если в начале текста сто€т лишние нули
+                if (text != "")
+                {
+                    if ((text[0] == '0') && (text[1] != '.'))
+                    {
+                        text = text.Substring(1, text.Length - 1);
+                        this.Text = text;
+                    }
+                }
+
+                // если в предыдущем состо€нии строка начиналась с "0."
+                if ((oldText != "") && (text != ""))
+                {
+                    if ((oldText[0] == '0') && (oldText[1] == '.') && (text[1] == '0') && (text[2] == '.'))
+                    {
+                        text = text[0] + text.Substring(2, text.Length - 2);
+                        this.Text = text;
+                        this.SelectionStart = 1;
+                    }
+                }
+            }
+
+            oldText = text;
+        }
+    }
+}
